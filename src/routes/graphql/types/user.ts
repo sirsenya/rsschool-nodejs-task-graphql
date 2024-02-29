@@ -12,6 +12,7 @@ import { Profile } from './profile.js';
 import { Post } from './post.js';
 import { UUID } from 'crypto';
 import { Context } from './context.js';
+import { User as UserDb } from '@prisma/client';
 
 export type UserBody = Static<typeof userSchema>;
 
@@ -27,12 +28,12 @@ export const User = new GraphQLObjectType({
     posts: { type: new GraphQLList(Post) },
     userSubscribedTo: {
       type: new GraphQLList(User),
-      resolve: (source, _: { id: UUID }, ctx: Context) =>
+      resolve: async (user, _: { id: UUID }, ctx: Context, info) =>
         ctx.prisma.user.findMany({
           where: {
             subscribedToUser: {
-              every: {
-                subscriberId: _.id,
+              some: {
+                subscriberId: user.id,
               },
             },
           },
@@ -44,8 +45,8 @@ export const User = new GraphQLObjectType({
         ctx.prisma.user.findMany({
           where: {
             userSubscribedTo: {
-              every: {
-                authorId: _.id,
+              some: {
+                authorId: source.id,
               },
             },
           },

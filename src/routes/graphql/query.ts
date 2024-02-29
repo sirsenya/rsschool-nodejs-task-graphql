@@ -33,6 +33,8 @@ export const Query = new GraphQLObjectType<unknown, Context>({
               },
             },
             posts: true,
+            userSubscribedTo: true,
+            subscribedToUser: true,
           },
         });
       },
@@ -99,24 +101,24 @@ export const Query = new GraphQLObjectType<unknown, Context>({
               },
             },
             posts: true,
-            userSubscribedTo: {
-              include: {
-                subscriber: {
-                  include: {
-                    subscribedToUser: true,
-                  },
-                },
-              },
-            },
-            subscribedToUser: {
-              select: {
-                subscriber: {
-                  include: {
-                    userSubscribedTo: true,
-                  },
-                },
-              },
-            },
+            userSubscribedTo: true, //{
+            //   include: {
+            //     subscriber: {
+            //       include: {
+            //         subscribedToUser: true,
+            //       },
+            //     },
+            //   },
+            // },
+            subscribedToUser: true, //{
+            //   select: {
+            //     subscriber: {
+            //       include: {
+            //         userSubscribedTo: true,
+            //       },
+            //     },
+            //   },
+            // },
           },
         });
       },
