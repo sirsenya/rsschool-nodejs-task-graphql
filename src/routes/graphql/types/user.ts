@@ -5,16 +5,12 @@ import {
   GraphQLObjectType,
   GraphQLString,
 } from 'graphql';
-import { Static } from '@sinclair/typebox';
-import { userSchema } from '../../users/schemas.js';
 import { UUIDType } from './uuid.js';
 import { Profile } from './profile.js';
 import { Post } from './post.js';
 import { UUID } from 'crypto';
 import { Context } from './context.js';
-import { User as UserDb } from '@prisma/client';
-
-export type UserBody = Static<typeof userSchema>;
+import { Profile as ProfileDb, Post as PostDb } from '@prisma/client';
 
 export const User = new GraphQLObjectType({
   name: 'User',
@@ -24,36 +20,56 @@ export const User = new GraphQLObjectType({
     balance: {
       type: new GraphQLNonNull(GraphQLFloat),
     },
-    profile: { type: Profile },
-    posts: { type: new GraphQLList(Post) },
+    profile: {
+      type: Profile,
+      resolve: async (source: UserInterface, args, context: Context, info) =>
+        context.dataloaders.profileDataloader.load(source.id),
+    },
+    posts: {
+      type: new GraphQLList(Post),
+      resolve: async (source: UserInterface, args, context: Context, info) =>
+        context.dataloaders.postsOfUserDataloader.load(source.id),
+    },
     userSubscribedTo: {
       type: new GraphQLList(User),
-      resolve: async (user, _: { id: UUID }, ctx: Context, info) =>
-        ctx.prisma.user.findMany({
-          where: {
-            subscribedToUser: {
-              some: {
-                subscriberId: user.id,
-              },
-            },
-          },
-        }),
+      resolve: async (source: UserInterface, args, ctx: Context, info) =>
+        source.userSubscribedTo
+          ? await ctx.dataloaders.usersDataloader.loadMany(
+              source.userSubscribedTo.map(({ authorId }) => authorId),
+            )
+          : [],
     },
     subscribedToUser: {
       type: new GraphQLList(User),
-      resolve: (source, _: { id: UUID }, ctx: Context) =>
-        ctx.prisma.user.findMany({
-          where: {
-            userSubscribedTo: {
-              some: {
-                authorId: source.id,
-              },
-            },
-          },
-        }),
+      resolve: async (source: UserInterface, args, ctx: Context) => {
+        const subscribedToUser: string[] | undefined = source.subscribedToUser?.map(
+          (user) => user.subscriberId,
+        );
+        if (subscribedToUser) {
+          const users = await ctx.dataloaders.usersDataloader.loadMany(subscribedToUser);
+          console.log(users);
+          //console.log(`subscribed to user users ${users.map((user) => user.toString)}`);
+          return users[0];
+        }
+      },
     },
   }),
 });
+
+export interface UserInterface {
+  id: UUID;
+  name: string;
+  balance: number;
+  profile: ProfileDb;
+  posts: PostDb[];
+  userSubscribedTo?: Subscription[];
+  subscribedToUser?: Subscription[];
+}
+
+export interface Subscription {
+  subscriberId: string;
+  authorId: string;
+}
 
 // export interface UserInputInterface {
 //   userSubscribedTo: {
