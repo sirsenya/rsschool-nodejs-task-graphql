@@ -6,7 +6,7 @@ import { MemberTypeId } from '../member-types/schemas.js';
 
 export function buildDataloaders(prisma: PrismaClient): DataloadersInterface {
   async function userBatch(ids: readonly string[]) {
-    console.log('DSLNJFJNDSJNKDJNSFJDSNFKJDNJSFJN');
+    //  console.log('DSLNJFJNDSJNKDJNSFJDSNFKJDNJSFJN');
     const users = await prisma.user.findMany({
       where: {
         id: {
@@ -18,13 +18,12 @@ export function buildDataloaders(prisma: PrismaClient): DataloadersInterface {
         userSubscribedTo: true,
       },
     });
-    console.log(users.length);
-    console.log(users[0].name);
+    // console.log(users.length);
+    // console.log(users[0].name);
     const usersMap = new Map<string, User[]>();
-    users.forEach((user) =>
-      usersMap[user.id] ? usersMap[user.id].push(user) : (usersMap[user.id] = [user]),
-    );
-    console.log(usersMap);
+    users.forEach((user) => (usersMap[user.id] = user));
+    // console.log(usersMap);
+    // console.log(ids.map((id) => usersMap[id] ?? []));
     return ids.map((id) => usersMap[id] ?? []);
   }
   async function postBatch(userIds: readonly string[]) {

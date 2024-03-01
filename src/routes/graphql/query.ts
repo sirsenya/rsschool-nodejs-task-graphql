@@ -40,7 +40,7 @@ export const Query = new GraphQLObjectType<unknown, Context>({
         const subscribedToUser: boolean =
           Object.keys(fields).includes('subscribedToUser');
 
-        console.log(`${userSubscribedTo}, ${subscribedToUser}`);
+        //  console.log(`${userSubscribedTo}, ${subscribedToUser}`);
 
         const users = await ctx.prisma.user.findMany({
           include: {
@@ -54,9 +54,9 @@ export const Query = new GraphQLObjectType<unknown, Context>({
             subscribedToUser: subscribedToUser,
           },
         });
-        console.log(ctx.dataloaders.usersDataloader);
+        //  console.log(ctx.dataloaders.usersDataloader);
         users.forEach((user) => ctx.dataloaders.usersDataloader.prime(user.id, user));
-        console.log(ctx.dataloaders.usersDataloader);
+        //   console.log(ctx.dataloaders.usersDataloader);
         return users;
       },
     },
@@ -112,23 +112,24 @@ export const Query = new GraphQLObjectType<unknown, Context>({
       },
       resolve: async (_obj, args: { id: UUID }, ctx) => {
         // console.log(args.id);
-        // const user = await ctx.prisma.user.findUnique({
-        //   where: {
-        //     id: args.id,
-        //   },
-        //   include: {
-        //     userSubscribedTo: true,
-        //     subscribedToUser: true,
-        //   },
-        // });
+        const user = await ctx.prisma.user.findUnique({
+          where: {
+            id: args.id,
+          },
+          include: {
+            userSubscribedTo: true,
+            subscribedToUser: true,
+          },
+        });
+        return user;
         // console.log(ctx.dataloaders.usersDataloader);
 
         // //ctx.dataloaders.usersDataloader.prime(user.id, user)
         // return user;
-        console.log('BBBBBBBBBBB');
-        const user = await ctx.dataloaders.usersDataloader.load(args.id);
-        console.log(user[0].subscribedToUser);
-        return user[0];
+        // console.log('BBBBBBBBBBB');
+        // const user = await ctx.dataloaders.usersDataloader.load(args.id);
+        // console.log(user[0].subscribedToUser);
+        // return user[0];
       },
     },
   },

@@ -47,9 +47,9 @@ export const User = new GraphQLObjectType({
         );
         if (subscribedToUser) {
           const users = await ctx.dataloaders.usersDataloader.loadMany(subscribedToUser);
-          console.log(users);
+          // console.log(users);
           //console.log(`subscribed to user users ${users.map((user) => user.toString)}`);
-          return users[0];
+          return users;
         }
       },
     },
