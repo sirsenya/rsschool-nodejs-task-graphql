@@ -1,21 +1,16 @@
 import {
   GraphQLBoolean,
   GraphQLEnumType,
-  GraphQLFloat,
+  GraphQLInputObjectType,
   GraphQLInt,
   GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLString,
 } from 'graphql';
-import { Static } from '@sinclair/typebox';
 import { UUIDType } from './uuid.js';
-import { profileSchema } from '../../profiles/schemas.js';
 import { MemberType } from './member_type.js';
-import { Context } from './context.js';
 import { UUID } from 'crypto';
 import { MemberTypeId } from '../../member-types/schemas.js';
-
-//export type ProfileBody = Static<typeof profileSchema>;
+import { Context } from '../schemas.js';
 
 export const Profile = new GraphQLObjectType<ProfileInputInteface>({
   name: 'Profile',
@@ -39,3 +34,35 @@ interface ProfileInputInteface {
   userId: string;
   memberTypeId: MemberTypeId;
 }
+
+export const MemberTypeIdType = new GraphQLEnumType({
+  name: 'MemberTypeId',
+  values: {
+    [MemberTypeId.BASIC]: {
+      value: MemberTypeId.BASIC,
+    },
+    [MemberTypeId.BUSINESS]: {
+      value: MemberTypeId.BUSINESS,
+    },
+  },
+});
+
+export const CreateProfileInput = new GraphQLInputObjectType({
+  name: 'CreateProfileInput',
+  fields: {
+    isMale: { type: new GraphQLNonNull(GraphQLBoolean) },
+    yearOfBirth: { type: new GraphQLNonNull(GraphQLInt) },
+    userId: { type: new GraphQLNonNull(UUIDType) },
+    memberTypeId: { type: new GraphQLNonNull(MemberTypeIdType) },
+  },
+});
+
+export const ChangeProfileInput = new GraphQLInputObjectType({
+  name: 'ChangeProfileInput',
+  fields: {
+    isMale: { type: GraphQLBoolean },
+    yearOfBirth: { type: GraphQLInt },
+    userId: { type: UUIDType },
+    memberTypeid: { type: MemberTypeIdType },
+  },
+});

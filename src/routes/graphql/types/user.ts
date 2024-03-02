@@ -1,5 +1,6 @@
 import {
   GraphQLFloat,
+  GraphQLInputObjectType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
@@ -9,8 +10,8 @@ import { UUIDType } from './uuid.js';
 import { Profile } from './profile.js';
 import { Post } from './post.js';
 import { UUID } from 'crypto';
-import { Context } from './context.js';
 import { Profile as ProfileDb, Post as PostDb } from '@prisma/client';
+import { Context } from '../schemas.js';
 
 export const User = new GraphQLObjectType({
   name: 'User',
@@ -32,12 +33,16 @@ export const User = new GraphQLObjectType({
     },
     userSubscribedTo: {
       type: new GraphQLList(User),
-      resolve: async (source: UserInterface, args, ctx: Context, info) =>
-        source.userSubscribedTo
-          ? await ctx.dataloaders.usersDataloader.loadMany(
-              source.userSubscribedTo.map(({ authorId }) => authorId),
-            )
-          : [],
+      resolve: async (source: UserInterface, args, ctx: Context, info) => {
+        const userSubscribedTo: string[] | undefined = source.userSubscribedTo?.map(
+          (user) => user.authorId,
+        );
+        if (userSubscribedTo) {
+          const users = await ctx.dataloaders.usersDataloader.loadMany(userSubscribedTo);
+          // console.log(users);
+          return users;
+        }
+      },
     },
     subscribedToUser: {
       type: new GraphQLList(User),
@@ -62,22 +67,27 @@ export interface UserInterface {
   balance: number;
   profile: ProfileDb;
   posts: PostDb[];
-  userSubscribedTo?: Subscription[];
-  subscribedToUser?: Subscription[];
+  userSubscribedTo?: Subs[];
+  subscribedToUser?: Subs[];
 }
 
-export interface Subscription {
+export const CreateUserInput = new GraphQLInputObjectType({
+  name: 'CreateUserInput',
+  fields: {
+    name: { type: new GraphQLNonNull(GraphQLString) },
+    balance: { type: new GraphQLNonNull(GraphQLFloat) },
+  },
+});
+
+export const ChangeUserINput = new GraphQLInputObjectType({
+  name: 'ChangeUserInput',
+  fields: {
+    name: { type: GraphQLString },
+    balance: { type: GraphQLFloat },
+  },
+});
+
+export interface Subs {
   subscriberId: string;
   authorId: string;
 }
-
-// export interface UserInputInterface {
-//   userSubscribedTo: {
-//     subscriberId: UUID;
-//     authorId: UUID;
-//   };
-//   subscribedToUser: {
-//     subscriberId: UUID;
-//     authorId: UUID;
-//   };
-// }

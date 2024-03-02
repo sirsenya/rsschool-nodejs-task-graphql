@@ -1,12 +1,9 @@
 import DataLoader from 'dataloader';
-import { Context, DataloadersInterface } from './types/context.js';
 import { MemberType, Post, PrismaClient, Profile, User } from '@prisma/client';
-import { MemberTypeBody } from './types/member_type.js';
 import { MemberTypeId } from '../member-types/schemas.js';
 
 export function buildDataloaders(prisma: PrismaClient): DataloadersInterface {
   async function userBatch(ids: readonly string[]) {
-    //  console.log('DSLNJFJNDSJNKDJNSFJDSNFKJDNJSFJN');
     const users = await prisma.user.findMany({
       where: {
         id: {
@@ -61,7 +58,6 @@ export function buildDataloaders(prisma: PrismaClient): DataloadersInterface {
   }
 
   async function profileBatch(userIds: readonly string[]) {
-    // console.log('PROILE lODAADEDDED');
     // console.log(userIds);
     const profilesOfUsers = await prisma.profile.findMany({
       where: {
@@ -83,4 +79,10 @@ export function buildDataloaders(prisma: PrismaClient): DataloadersInterface {
     memberTypeDataloader: new DataLoader<MemberTypeId, MemberType>(memberTypeBatch),
     profileDataloader: new DataLoader<string, Profile>(profileBatch),
   };
+}
+export interface DataloadersInterface {
+  usersDataloader: DataLoader<string, User>;
+  profileDataloader: DataLoader<string, Profile>;
+  postsOfUserDataloader: DataLoader<string, Post>;
+  memberTypeDataloader: DataLoader<MemberTypeId, MemberType>;
 }
