@@ -24,7 +24,7 @@ export function buildDataloaders(prisma: PrismaClient): DataloadersInterface {
     users.forEach((user) => (usersMap[user.id] = user));
     // console.log(usersMap);
     // console.log(ids.map((id) => usersMap[id] ?? []));
-    return ids.map((id) => usersMap[id] ?? []);
+    return ids.map((id) => usersMap[id]);
   }
   async function postBatch(userIds: readonly string[]) {
     const postsOfUser = await prisma.post.findMany({
@@ -44,25 +44,25 @@ export function buildDataloaders(prisma: PrismaClient): DataloadersInterface {
     return userIds.map((id) => postsMap[id] || []);
   }
 
-  // async function memberBatch(memberTypeId: readonly MemberTypeId[]) {
-  //   const postsOfUser = await prisma.profile.findMany({
-  //     where: {
-  //      memberType : {
-  //         in: userIds as string[],
-  //       },
-  //     },
-  //   });
-  //   const postsMap = new Map<string, Post>();
-  //   postsOfUser.forEach((post) =>
-  //     postsMap[post.authorId]
-  //       ? postsMap[post.authorId].push(post)
-  //       : (postsMap[post.authorId] = [post]),
-  //   );
+  async function memberTypeBatch(memberTypeId: readonly MemberTypeId[]) {
+    //console.log('In member type batch');
+    const memberTypes = await prisma.memberType.findMany({
+      where: {
+        id: {
+          in: memberTypeId as string[],
+        },
+      },
+    });
+    // console.log(memberTypes);
+    const memberTypeMap = new Map<string, Post>();
+    memberTypes.forEach((memberType) => (memberTypeMap[memberType.id] = memberType));
 
-  //   return userIds.map((id) => postsMap[id] || []);
-  // }
+    return memberTypeId.map((id) => memberTypeMap[id]);
+  }
 
   async function profileBatch(userIds: readonly string[]) {
+    // console.log('PROILE lODAADEDDED');
+    // console.log(userIds);
     const profilesOfUsers = await prisma.profile.findMany({
       where: {
         userId: {
@@ -70,20 +70,17 @@ export function buildDataloaders(prisma: PrismaClient): DataloadersInterface {
         },
       },
     });
+    //console.log(profilesOfUsers);
     const profilesMap = new Map<string, Post>();
-    profilesOfUsers.forEach((profile) =>
-      profilesMap[profile.userId]
-        ? profilesMap[profile.userId].push(profile)
-        : (profilesMap[profile.userId] = [profile]),
-    );
+    profilesOfUsers.forEach((profile) => (profilesMap[profile.userId] = profile));
 
-    return userIds.map((id) => profilesMap[id] || []);
+    return userIds.map((id) => profilesMap[id]);
   }
 
   return {
     usersDataloader: new DataLoader<string, User>(userBatch),
     postsOfUserDataloader: new DataLoader<string, Post>(postBatch),
-    //  memberTypeDataloader: new DataLoader<string, MemberType>(memberTypeBatch),
+    memberTypeDataloader: new DataLoader<MemberTypeId, MemberType>(memberTypeBatch),
     profileDataloader: new DataLoader<string, Profile>(profileBatch),
   };
 }

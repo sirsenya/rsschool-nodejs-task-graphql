@@ -12,7 +12,7 @@ export interface DataloadersInterface {
   usersDataloader: DataLoader<string, User>;
   profileDataloader: DataLoader<string, Profile>;
   postsOfUserDataloader: DataLoader<string, Post>;
-  //memberTypeDataloader: DataLoader<string, MemberType>;
+  memberTypeDataloader: DataLoader<MemberTypeId, MemberType>;
 }
 
 // interface UserInterface {

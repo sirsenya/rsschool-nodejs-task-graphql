@@ -26,8 +26,8 @@ export const Profile = new GraphQLObjectType<ProfileInputInteface>({
     userId: { type: new GraphQLNonNull(UUIDType) },
     memberType: {
       type: new GraphQLNonNull(MemberType),
-      //   resolve: (source: ProfileInputInteface, args, context: Context, info) =>
-      //     context.dataloaders.memberTypeDataloader.load(source.memberTypeId),
+      resolve: (source: ProfileInputInteface, args, context: Context, info) =>
+        context.dataloaders.memberTypeDataloader.load(source.memberTypeId),
     },
   }),
 });
