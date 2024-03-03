@@ -1,4 +1,6 @@
 import { Type } from '@fastify/type-provider-typebox';
+import { PrismaClient } from '@prisma/client';
+import { DataloadersInterface } from './dataloaders.js';
 
 export const gqlResponseSchema = Type.Partial(
   Type.Object({
@@ -17,4 +19,9 @@ export const createGqlResponseSchema = {
       additionalProperties: false,
     },
   ),
+};
+
+export type Context = {
+  prisma: PrismaClient;
+  dataloaders: DataloadersInterface;
 };
